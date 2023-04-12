@@ -39,11 +39,11 @@ typedef union
     static const ncnn::FloatInt Name = {.f = Val}
 
 /* float type data load instructions */
-static NCNN_FORCEINLINE v4f32 __msa_fill_w_f32(float val)
-{
-    ncnn::FloatInt fi_tmpval = {.f = val};
-    return (v4f32)__msa_fill_w(fi_tmpval.i);
-}
+// static NCNN_FORCEINLINE v4f32 __msa_fill_w_f32(float val)
+// {
+//     ncnn::FloatInt fi_tmpval = {.f = val};
+//     return (v4f32)__msa_fill_w(fi_tmpval.i);
+// }
 
 static NCNN_FORCEINLINE float __msa_reduce_fadd_w(v4f32 _v)
 {
