@@ -50,7 +50,7 @@
 #define __msa_clti_s_b(a, i) _mx128_clts_b(a, _mx128_mfcpu_b(i))
 #define __msa_clti_s_h(a, i) _mx128_clts_h(a, _mx128_mfcpu_h(i))
 
-#define __msa_bsel_v(a, b, c) _mx128_bselv((v16i8)(a), (v16i8)(b), (v16i8)(c))
+#define __msa_bsel_v(a, b, c) _mx128_bselv((v16i8)(b), (v16i8)(c), (v16i8)(a))
 
 #define __msa_sll_h  _mx128_sll_h
 #define __msa_sll_w  _mx128_sll_w
