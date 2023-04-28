@@ -474,7 +474,7 @@ endif()
 
 if(NCNN_TARGET_ARCH STREQUAL "mips")
     if(NOT NCNN_RUNTIME_CPU AND NCNN_MSA)
-        target_compile_options(ncnn PRIVATE -mmsa)
+        target_compile_options(ncnn PRIVATE -mmxu2)
     endif()
     if(NOT NCNN_RUNTIME_CPU AND NCNN_MMI)
         target_compile_options(ncnn PRIVATE -mloongson-mmi)

@@ -274,7 +274,7 @@ if((IOS AND CMAKE_OSX_ARCHITECTURES MATCHES "arm")
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(mips)")
     set(NCNN_TARGET_ARCH mips)
 
-    check_cxx_compiler_flag("-mmsa" NCNN_COMPILER_SUPPORT_MIPS_MSA)
+    check_cxx_compiler_flag("-mmxu2" NCNN_COMPILER_SUPPORT_MIPS_MSA)
 
     set(CMAKE_REQUIRED_FLAGS "-mloongson-mmi -I${CMAKE_CURRENT_SOURCE_DIR}/src/layer/mips")
     check_cxx_source_compiles("#include \"loongson_mmi.h\"\nint main() { int16x4_t _a, _b; int32x2_t _s = __mmi_pmaddhw(_a, _b); return 0; }" NCNN_COMPILER_SUPPORT_LOONGSON_MMI)
