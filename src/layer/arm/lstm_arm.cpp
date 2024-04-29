@@ -14,8 +14,6 @@
 
 #include "lstm_arm.h"
 
-#include <math.h>
-
 #if __ARM_NEON
 #include <arm_neon.h>
 #endif // __ARM_NEON
@@ -323,24 +321,24 @@ static int lstm(const Mat& bottom_blob, Mat& top_blob, int reverse, const Mat& w
 
             float32x4x4_t _IFOG_4x4 = vld4q_f32(gates_data);
 
-            float32x4_t _I = sigmoid_ps(_IFOG_4x4.val[0]);
-            float32x4_t _F = sigmoid_ps(_IFOG_4x4.val[1]);
-            float32x4_t _O = sigmoid_ps(_IFOG_4x4.val[2]);
-            float32x4_t _G = tanh_ps(_IFOG_4x4.val[3]);
+            float32x4_t _lstm_I = sigmoid_ps(_IFOG_4x4.val[0]);
+            float32x4_t _lstm_F = sigmoid_ps(_IFOG_4x4.val[1]);
+            float32x4_t _lstm_O = sigmoid_ps(_IFOG_4x4.val[2]);
+            float32x4_t _lstm_G = tanh_ps(_IFOG_4x4.val[3]);
 
-            float32x4_t _cell2 = vaddq_f32(vmulq_f32(_F, vld1q_f32(cell_ptr + q)), vmulq_f32(_I, _G));
-            float32x4_t _H = vmulq_f32(_O, tanh_ps(_cell2));
+            float32x4_t _cell2 = vaddq_f32(vmulq_f32(_lstm_F, vld1q_f32(cell_ptr + q)), vmulq_f32(_lstm_I, _lstm_G));
+            float32x4_t _lstm_H = vmulq_f32(_lstm_O, tanh_ps(_cell2));
 
             vst1q_f32(cell_ptr + q, _cell2);
 
             if (num_output == hidden_size)
             {
-                vst1q_f32(hidden_ptr + q, _H);
-                vst1q_f32(output_data + q, _H);
+                vst1q_f32(hidden_ptr + q, _lstm_H);
+                vst1q_f32(output_data + q, _lstm_H);
             }
             else
             {
-                vst1q_f32(tmp_hidden_ptr + q, _H);
+                vst1q_f32(tmp_hidden_ptr + q, _lstm_H);
             }
         }
 #endif // __ARM_NEON
@@ -354,13 +352,13 @@ static int lstm(const Mat& bottom_blob, Mat& top_blob, int reverse, const Mat& w
             float O = gates_data[2];
             float G = gates_data[3];
 
-            I = 1.f / (1.f + exp(-I));
-            F = 1.f / (1.f + exp(-F));
-            O = 1.f / (1.f + exp(-O));
-            G = tanh(G);
+            I = 1.f / (1.f + expf(-I));
+            F = 1.f / (1.f + expf(-F));
+            O = 1.f / (1.f + expf(-O));
+            G = tanhf(G);
 
             float cell2 = F * cell_ptr[q] + I * G;
-            float H = O * tanh(cell2);
+            float H = O * tanhf(cell2);
 
             cell_ptr[q] = cell2;
             if (num_output == hidden_size)
@@ -778,24 +776,24 @@ static int lstm_bf16s(const Mat& bottom_blob, Mat& top_blob, int reverse, const 
 
             float32x4x4_t _IFOG_4x4 = vld4q_f32(gates_data);
 
-            float32x4_t _I = sigmoid_ps(_IFOG_4x4.val[0]);
-            float32x4_t _F = sigmoid_ps(_IFOG_4x4.val[1]);
-            float32x4_t _O = sigmoid_ps(_IFOG_4x4.val[2]);
-            float32x4_t _G = tanh_ps(_IFOG_4x4.val[3]);
+            float32x4_t _lstm_I = sigmoid_ps(_IFOG_4x4.val[0]);
+            float32x4_t _lstm_F = sigmoid_ps(_IFOG_4x4.val[1]);
+            float32x4_t _lstm_O = sigmoid_ps(_IFOG_4x4.val[2]);
+            float32x4_t _lstm_G = tanh_ps(_IFOG_4x4.val[3]);
 
-            float32x4_t _cell2 = vaddq_f32(vmulq_f32(_F, vld1q_f32(cell_ptr + q)), vmulq_f32(_I, _G));
-            float32x4_t _H = vmulq_f32(_O, tanh_ps(_cell2));
+            float32x4_t _cell2 = vaddq_f32(vmulq_f32(_lstm_F, vld1q_f32(cell_ptr + q)), vmulq_f32(_lstm_I, _lstm_G));
+            float32x4_t _lstm_H = vmulq_f32(_lstm_O, tanh_ps(_cell2));
 
             vst1q_f32(cell_ptr + q, _cell2);
 
             if (num_output == hidden_size)
             {
-                vst1q_f32(hidden_ptr + q, _H);
-                vst1_u16(output_data + q, float2bfloat(_H));
+                vst1q_f32(hidden_ptr + q, _lstm_H);
+                vst1_u16(output_data + q, float2bfloat(_lstm_H));
             }
             else
             {
-                vst1q_f32(tmp_hidden_ptr + q, _H);
+                vst1q_f32(tmp_hidden_ptr + q, _lstm_H);
             }
         }
 #endif // __ARM_NEON
@@ -809,13 +807,13 @@ static int lstm_bf16s(const Mat& bottom_blob, Mat& top_blob, int reverse, const 
             float O = gates_data[2];
             float G = gates_data[3];
 
-            I = 1.f / (1.f + exp(-I));
-            F = 1.f / (1.f + exp(-F));
-            O = 1.f / (1.f + exp(-O));
-            G = tanh(G);
+            I = 1.f / (1.f + expf(-I));
+            F = 1.f / (1.f + expf(-F));
+            O = 1.f / (1.f + expf(-O));
+            G = tanhf(G);
 
             float cell2 = F * cell_ptr[q] + I * G;
-            float H = O * tanh(cell2);
+            float H = O * tanhf(cell2);
 
             cell_ptr[q] = cell2;
             if (num_output == hidden_size)

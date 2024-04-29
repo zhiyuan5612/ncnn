@@ -2281,8 +2281,12 @@ static void gemm_transB_packed_tile_fp16sa(const Mat& AT_tile, const Mat& BT_til
 static void get_optimal_tile_mnk_fp16sa(int M, int N, int K, int constant_TILE_M, int constant_TILE_N, int constant_TILE_K, int& TILE_M, int& TILE_N, int& TILE_K, int nT)
 {
     // resolve optimal tile size from cache size
-    size_t l2_cache_size = get_cpu_level2_cache_size();
-    int tile_size = (int)sqrt((float)l2_cache_size / 3 / sizeof(__fp16));
+    const size_t l2_cache_size = get_cpu_level2_cache_size();
+
+    if (nT == 0)
+        nT = get_physical_big_cpu_count();
+
+    int tile_size = (int)sqrtf((float)l2_cache_size / 3 / sizeof(__fp16));
 
     TILE_M = std::max(8, tile_size / 8 * 8);
     TILE_N = std::max(4, tile_size / 4 * 4);
@@ -2393,6 +2397,10 @@ static int gemm_arm_fp16sa(const Mat& A, const Mat& B, const Mat& C, Mat& top_bl
     for (int ppi = 0; ppi < nn_M; ppi++)
     {
         const int i = ppi * TILE_M;
+
+        // shadowed variable for less openmp task args
+        const int M = transA ? A.w : (A.dims == 3 ? A.c : A.h) * A.elempack;
+        const int K = transA ? (A.dims == 3 ? A.c : A.h) * A.elempack : A.w;
 
         const int max_ii = std::min((M - i), TILE_M);
 
@@ -2568,6 +2576,10 @@ static int gemm_BT_arm_fp16sa(const Mat& A, const Mat& BT, const Mat& C, Mat& to
     {
         const int i = ppi * TILE_M;
 
+        // shadowed variable for less openmp task args
+        const int M = transA ? A.w : (A.dims == 3 ? A.c : A.h) * A.elempack;
+        const int K = transA ? (A.dims == 3 ? A.c : A.h) * A.elempack : A.w;
+
         const int max_ii = std::min((M - i), TILE_M);
 
         Mat topT_tile;
@@ -2725,9 +2737,7 @@ int Gemm_arm::create_pipeline_fp16sa(const Option& opt)
         }
 
         if (opt.lightmode)
-        {
             A_data.release();
-        }
     }
 
     if (constantB)
@@ -2768,9 +2778,7 @@ int Gemm_arm::create_pipeline_fp16sa(const Option& opt)
         }
 
         if (opt.lightmode)
-        {
             B_data.release();
-        }
     }
 
     if (constantC && constant_broadcast_type_C != -1)
@@ -2797,9 +2805,7 @@ int Gemm_arm::create_pipeline_fp16sa(const Option& opt)
         }
 
         if (opt.lightmode)
-        {
             C_data.release();
-        }
     }
 
     if (constantA || constantB || constantC)
@@ -2910,7 +2916,7 @@ int Gemm_arm::forward_fp16sa(const std::vector<Mat>& bottom_blobs, std::vector<M
                 __fp16* outptr = CT_data;
                 for (int i = 0; i < size; i++)
                 {
-                    outptr[i] = ptr[i] * beta;
+                    outptr[i] = ptr[i] * (__fp16)beta;
                 }
 
                 C = CT_data;

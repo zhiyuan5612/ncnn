@@ -6,6 +6,7 @@
 * [BinaryOp](#binaryop)
 * [BNLL](#bnll)
 * [Cast](#cast)
+* [CELU](#celu)
 * [Clip](#clip)
 * [Concat](#concat)
 * [Convolution](#convolution)
@@ -25,11 +26,14 @@
 * [DeconvolutionDepthWise3D](#deconvolutiondepthwise3d)
 * [DeformableConv2D](#deformableconv2d)
 * [Dequantize](#dequantize)
+* [Diag](#diag)
 * [Dropout](#dropout)
 * [Eltwise](#eltwise)
 * [ELU](#elu)
+* [Embed](#embed)
 * [Exp](#exp)
 * [Flatten](#flatten)
+* [Fold](#fold)
 * [GELU](#gelu)
 * [GLU](#glu)
 * [Gemm](#gemm)
@@ -70,6 +74,7 @@
 * [RNN](#rnn)
 * [Scale](#scale)
 * [SELU](#selu)
+* [Shrink](#shrink)
 * [ShuffleChannel](#shufflechannel)
 * [Sigmoid](#sigmoid)
 * [Slice](#slice)
@@ -81,6 +86,7 @@
 * [Threshold](#threshold)
 * [Tile](#tile)
 * [UnaryOp](#unaryop)
+* [Unfold](#unfold)
 
 # AbsVal
 ```
@@ -195,6 +201,19 @@ Element type:
 - 2 = float16
 - 3 = int8
 - 4 = bfloat16
+
+# CELU
+```
+if x < 0    y = (exp(x / alpha) - 1.f) * alpha
+else        y = x
+```
+
+* one_blob_only
+* support_inplace
+
+| param id  | name          | type  | default   | description       |
+| --------- | ------------- | ----- | --------- | ----------------- |
+| 0         | alpha         | float | 1.f       |                   |
 
 # Clip
 ```
@@ -458,12 +477,15 @@ y = crop(x)
 | --------- | ------------- | ----- | --------- | ----------------- |
 | 0         | woffset       | int   | 0         |                   |
 | 1         | hoffset       | int   | 0         |                   |
-| 2         | coffset       | int   | 1         |                   |
-| 3         | outw          | int   | 1         |                   |
+| 13        | doffset       | int   | 0         |                   |
+| 2         | coffset       | int   | 0         |                   |
+| 3         | outw          | int   | 0         |                   |
 | 4         | outh          | int   | 0         |                   |
+| 14        | outd          | int   | 0         |                   |
 | 5         | outc          | int   | 0         |                   |
 | 6         | woffset2      | int   | 0         |                   |
-| 7         | hoffset2      | int   | 1         |                   |
+| 7         | hoffset2      | int   | 0         |                   |
+| 15        | doffset2      | int   | 0         |                   |
 | 8         | coffset2      | int   | 0         |                   |
 | 9         | starts        | array | [ ]       |                   |
 | 10        | ends          | array | [ ]       |                   |
@@ -513,6 +535,7 @@ y = activation(x3, act_type, act_params)
 | 19        | output_pad_bottom| int | output_pad_right |           |
 | 20        | output_w      | int   | 0         |                   |
 | 21        | output_h      | int   | output_w  |                   |
+| 28        | dynamic_weight| int   | 0         |                   |
 
 | weight        | type  | shape                 |
 | ------------- | ----- | --------------------- |
@@ -542,6 +565,7 @@ y = activation(x3, act_type, act_params)
 | 15        | pad_right     | int   | pad_left  |                   |
 | 18        | output_pad_right| int | 0         |                   |
 | 20        | output_w      | int   | 0         |                   |
+| 28        | dynamic_weight| int   | 0         |                   |
 
 | weight        | type  | shape                 |
 | ------------- | ----- | --------------------- |
@@ -622,6 +646,7 @@ y = activation(x3, act_type, act_params)
 | 19        | output_pad_bottom| int | output_pad_right |           |
 | 20        | output_w      | int   | 0         |                   |
 | 21        | output_h      | int   | output_w  |                   |
+| 28        | dynamic_weight| int   | 0         |                   |
 
 | weight        | type  | shape                 |
 | ------------- | ----- | --------------------- |
@@ -652,6 +677,7 @@ y = activation(x3, act_type, act_params)
 | 15        | pad_right     | int   | pad_left  |                   |
 | 18        | output_pad_right| int | 0         |                   |
 | 20        | output_w      | int   | 0         |                   |
+| 28        | dynamic_weight| int   | 0         |                   |
 
 | weight        | type  | shape                 |
 | ------------- | ----- | --------------------- |
@@ -749,6 +775,17 @@ y = x * scale + bias
 | scale_data    | float | [scale_data_size]     |
 | bias_data     | float | [bias_data_size]      |
 
+# Diag
+```
+y = diag(x, diagonal)
+```
+
+* one_blob_only
+
+| param id  | name          | type  | default   | description       |
+| --------- | ------------- | ----- | --------- | ----------------- |
+| 0         | diagonal      | int   | 0         |                   |
+
 # Dropout
 ```
 y = x * scale
@@ -788,6 +825,23 @@ else        y = x
 | --------- | ------------- | ----- | --------- | ----------------- |
 | 0         | alpha         | float | 0.1f      |                   |
 
+# Embed
+```
+y = embedding(x)
+```
+
+| param id  | name          | type  | default   | description       |
+| --------- | ------------- | ----- | --------- | ----------------- |
+| 0         | num_output    | int   | 0         |                   |
+| 1         | input_dim     | int   | 0         |                   |
+| 2         | bias_term     | int   | 0         |                   |
+| 3         | weight_data_size | int | 0        |                   |
+
+| weight        | type  | shape                 |
+| ------------- | ----- | --------------------- |
+| weight_data   | float | [weight_data_size]    |
+| bias_term     | float | [num_output]          |
+
 # Exp
 ```
 if base == -1   y = exp(shift + x * scale)
@@ -807,6 +861,29 @@ else            y = pow(base, (shift + x * scale))
 Reshape blob to 1 dimension
 
 * one_blob_only
+
+# Fold
+```
+y = fold(x)
+```
+
+* one_blob_only
+
+| param id  | name          | type  | default   | description       |
+| --------- | ------------- | ----- | --------- | ----------------- |
+| 0         | num_output    | int   | 0         |                   |
+| 1         | kernel_w      | int   | 0         |                   |
+| 2         | dilation_w    | int   | 1         |                   |
+| 3         | stride_w      | int   | 1         |                   |
+| 4         | pad_left      | int   | 0         |                   |
+| 11        | kernel_h      | int   | kernel_w  |                   |
+| 12        | dilation_h    | int   | dilation_w |                  |
+| 13        | stride_h      | int   | stride_w  |                   |
+| 14        | pad_top       | int   | pad_left  |                   |
+| 15        | pad_right     | int   | pad_left  |                   |
+| 16        | pad_bottom    | int   | pad_top   |                   |
+| 20        | output_w      | int   | 0         |                   |
+| 21        | output_h      | int   | output_w  |                   |
 
 # GELU
 ```
@@ -887,6 +964,7 @@ This function is often used in conjunction with affine_grid() to build Spatial T
 | 0         | sample_type   | int   | 1         |                   |
 | 1         | padding_mode  | int   | 1         |                   |
 | 2         | align_corner  | int   | 0         |                   |
+| 3         | permute_fusion| int   | 0         | fuse with permute |
 
 
 Sample type:
@@ -1155,6 +1233,7 @@ y = data
 | 1         | h             | int   | 0         |                   |
 | 11        | d             | int   | 0         |                   |
 | 2         | c             | int   | 0         |                   |
+| 21        | load_type     | int   | 1         | 1=fp32            |
 
 | weight        | type  | shape                 |
 | ------------- | ----- | --------------------- |
@@ -1176,6 +1255,7 @@ for each num_head part
     xk = affine(k)
     xv = affine(v)
     xqk = xq * xk
+    xqk = xqk + attn_mask if attn_mask exists
     softmax_inplace(xqk)
     xqkv = xqk * xv
     merge xqkv to out
@@ -1185,10 +1265,11 @@ y = affine(out)
 | param id  | name          | type  | default   | description       |
 | --------- | ------------- | ----- | --------- | ----------------- |
 | 0         | embed_dim     | int   | 0         |                   |
-| 1         | num_head      | int   | 1         |                   |
+| 1         | num_heads     | int   | 1         |                   |
 | 2         | weight_data_size| int | 0         |                   |
 | 3         | kdim          | int   | embed_dim |                   |
 | 4         | vdim          | int   | embed_dim |                   |
+| 5         | attn_mask     | int   | 0         |                   |
 
 | weight        | type  | shape                 |
 | ------------- | ----- | --------------------- |
@@ -1503,6 +1584,7 @@ y = reduce_op(x * coeff)
 | 2         | coeff         | float | 1.f       |                   |
 | 3         | axes          | array | [ ]       |                   |
 | 4         | keepdims      | int   | 0         |                   |
+| 5         | fixbug0       | int   | 0         | hack for bug fix, should be 1 |
 
 Operation type:
 - 0 = SUM
@@ -1647,6 +1729,21 @@ else        y = x * lambda
 | 0         | alpha         | float | 1.67326324f|                  |
 | 1         | lambda        | float | 1.050700987f|                 |
 
+# Shrink
+```
+if x < -lambd y = x + bias
+if x >  lambd y = x - bias
+else          y = x
+```
+
+* one_blob_only
+* support_inplace
+
+| param id  | name          | type  | default   | description       |
+| --------- | ------------- | ----- | --------- | ----------------- |
+| 0         | bias          | float | 0.0f      |                   |
+| 1         | lambd         | float | 0.5f      |                   |
+
 # ShuffleChannel
 ```
 if reverse == 0     y = shufflechannel(x) by group
@@ -1677,6 +1774,7 @@ split x along axis into slices, each part slice size is based on slices array
 | --------- | ------------- | ----- | --------- | ----------------- |
 | 0         | slices        | array | [ ]       |                   |
 | 1         | axis          | int   | 0         |                   |
+| 2         | indices       | array | [ ]       |                   |
 
 # Softmax
 ```
@@ -1777,3 +1875,26 @@ Operation type:
 - 15 = RECIPROCAL
 - 16 = TANH
 - 17 = LOG10
+- 18 = ROUND
+- 19 = TRUNC
+
+# Unfold
+```
+y = unfold(x)
+```
+
+* one_blob_only
+
+| param id  | name          | type  | default   | description       |
+| --------- | ------------- | ----- | --------- | ----------------- |
+| 0         | num_output    | int   | 0         |                   |
+| 1         | kernel_w      | int   | 0         |                   |
+| 2         | dilation_w    | int   | 1         |                   |
+| 3         | stride_w      | int   | 1         |                   |
+| 4         | pad_left      | int   | 0         |                   |
+| 11        | kernel_h      | int   | kernel_w  |                   |
+| 12        | dilation_h    | int   | dilation_w |                  |
+| 13        | stride_h      | int   | stride_w  |                   |
+| 14        | pad_top       | int   | pad_left  |                   |
+| 15        | pad_right     | int   | pad_left  |                   |
+| 16        | pad_bottom    | int   | pad_top   |                   |
