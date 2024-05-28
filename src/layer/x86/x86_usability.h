@@ -18,15 +18,18 @@
 #include <stdint.h>
 #if __SSE2__
 #include <emmintrin.h>
+#if __SSSE3__
+#include <tmmintrin.h>
 #if __SSE4_1__
 #include <smmintrin.h>
 #if __AVX__
 #include <immintrin.h>
 #if __XOP__
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #include <ammintrin.h>
 #else
 #include <x86intrin.h>
+#endif
 #endif
 #endif
 #endif
